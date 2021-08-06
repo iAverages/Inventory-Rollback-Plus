@@ -61,6 +61,8 @@ public class MySQL {
     private LogType logType;
     private String packageVersion;
     private String deathReason;
+    private Integer tps;
+    private Integer ping;
 
     public MySQL(UUID uuid, LogType logType, Long timestamp) {
         this.uuid = uuid;
@@ -107,9 +109,11 @@ public class MySQL {
                         "`uuid` VARCHAR(36) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL," +
                         "`timestamp` DOUBLE NOT NULL," +
                         "`xp` FLOAT NOT NULL," + 
-                        "`health` DOUBLE NOT NULL," + 
-                        "`hunger` INT NOT NULL," + 
-                        "`saturation` FLOAT NOT NULL," + 
+                        "`health` DOUBLE NOT NULL," +
+                        "`hunger` INT NOT NULL," +
+                        "`ping` INT NOT NULL," +
+                        "`tps` INT NOT NULL," +
+                        "`saturation` FLOAT NOT NULL," +
                         "`location_world` TEXT CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL," + 
                         "`location_x` DOUBLE NOT NULL," + 
                         "`location_y` DOUBLE NOT NULL," + 
@@ -283,6 +287,22 @@ public class MySQL {
         this.deathReason = deathReason;
     }
 
+    public void setTPS(Integer tps) {
+        this.tps = tps;
+    }
+
+    public void setPing(Integer ping) {
+        this.ping = ping;
+    }
+
+    public Integer getTPS() {
+        return this.tps;
+    }
+
+    public Integer getPing() {
+        return this.ping;
+    }
+
     public void getRollbackMenuData() throws SQLException {
         openConnection();
 
@@ -339,6 +359,10 @@ public class MySQL {
                     
                     packageVersion = results.getString("version");
                     deathReason = results.getString("death_reason");
+
+                    tps = results.getInt("tps");
+                    ping = results.getInt("ping");
+
                 }
             }
         } finally {
@@ -403,8 +427,8 @@ public class MySQL {
 
         try {
             String update = "INSERT INTO " + backupTable.getTableName() + " " +
-                    "(uuid, timestamp, xp, health, hunger, saturation, location_world, location_x, location_y, location_z, version, death_reason, main_inventory, armour, ender_chest)" + " " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    "(uuid, timestamp, xp, health, hunger, saturation, location_world, location_x, location_y, location_z, version, death_reason, main_inventory, armour, ender_chest, tps, ping)" + " " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
             try (PreparedStatement statement = connection.prepareStatement(update)) {
                 statement.setString(1, uuid + "");
@@ -422,6 +446,8 @@ public class MySQL {
                 statement.setString(13, mainInventory);
                 statement.setString(14, armour);
                 statement.setString(15, enderChest);
+                statement.setInt(16, tps);
+                statement.setInt(17, ping);
                 statement.executeUpdate();
             }
         } finally {

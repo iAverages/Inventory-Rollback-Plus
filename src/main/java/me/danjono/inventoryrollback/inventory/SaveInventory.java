@@ -1,9 +1,11 @@
 package me.danjono.inventoryrollback.inventory;
 
-import java.io.ByteArrayOutputStream;
-
+import com.danielraybone.inventoryrollback.TPSUtil;
 import com.nuclyon.technicallycoded.inventoryrollback.InventoryRollbackPlus;
 import com.nuclyon.technicallycoded.inventoryrollback.nms.EnumNmsVersion;
+import me.danjono.inventoryrollback.InventoryRollback;
+import me.danjono.inventoryrollback.data.LogType;
+import me.danjono.inventoryrollback.data.PlayerData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.inventory.Inventory;
@@ -12,9 +14,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
-import me.danjono.inventoryrollback.InventoryRollback;
-import me.danjono.inventoryrollback.data.LogType;
-import me.danjono.inventoryrollback.data.PlayerData;
+import java.io.ByteArrayOutputStream;
 
 public class SaveInventory {
 
@@ -79,6 +79,8 @@ public class SaveInventory {
         data.setZ(Math.floor(player.getLocation().getZ()) + 0.5);
         data.setLogType(logType);
         data.setVersion(InventoryRollback.getPackageVersion());
+        data.setTPS((int) TPSUtil.getTPS());
+        data.setPing(getPing(player));
 
         if (causeAlias != null) data.setDeathReason(causeAlias);
         else if (deathCause != null) data.setDeathReason(deathCause.name());
@@ -87,7 +89,11 @@ public class SaveInventory {
         data.saveData();
     }
 
-    //Conversion to Base64 code courtesy of github.com/JustRayz	
+    public static int getPing(Player player) {
+        return player.getPing();
+    }
+
+    //Conversion to Base64 code courtesy of github.com/JustRayz
     public static String toBase64(Inventory inventory) {
         return toBase64(inventory.getContents());
     }

@@ -43,6 +43,8 @@ public class YAML {
     private LogType logType;
     private String packageVersion;
     private String deathReason;
+    private Integer tps;
+    private Integer ping;
 
     private static String backup = "backups";
 
@@ -235,6 +237,14 @@ public class YAML {
         this.packageVersion = packageVersion;
     }
 
+    public void setTPS(Integer tps) {
+        this.tps = tps;
+    }
+
+    public void setPing(Integer ping) {
+        this.ping = ping;
+    }
+
     public void setDeathReason(String deathReason) {
         this.deathReason = deathReason;
     }
@@ -242,6 +252,14 @@ public class YAML {
     public ItemStack[] getMainInventory() {
         String base64 = data.getString("inventory");
         return RestoreInventory.getInventoryItems(getVersion(), base64);
+    }
+
+    public Integer getTPS() {
+        return Integer.parseInt(data.getString("tps"));
+    }
+
+    public Integer getPing() {
+        return Integer.parseInt(data.getString("ping"));
     }
 
     public ItemStack[] getArmour() {
@@ -321,6 +339,8 @@ public class YAML {
         data.set("logType", logType.name());
         data.set("version", packageVersion);
         data.set("deathReason", deathReason);
+        data.set("tps", tps);
+        data.set("ping", ping);
 
         try {
             data.save(backupFile);

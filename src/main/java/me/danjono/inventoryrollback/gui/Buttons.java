@@ -44,6 +44,8 @@ public class Buttons {
     private static final Material hunger = Material.ROTTEN_FLESH;
     private static final Material experience = InventoryRollbackPlus.getInstance().getVersion().isAtLeast(EnumNmsVersion.v1_13_R1) ? Material.EXPERIENCE_BOTTLE : Material.getMaterial("EXP_BOTTLE");
     private static final Material restoreAllInventory = Material.NETHER_STAR;
+    private static final Material tps = Material.REDSTONE;
+    private static final Material ping = Material.REDSTONE;
 
     public Buttons(UUID uuid) {
         this.uuid = uuid;
@@ -100,6 +102,10 @@ public class Buttons {
     public static Material getRestoreAllInventoryIcon() {
         return restoreAllInventory;
     }
+
+    public static ItemStack getTPSIcon() { return new ItemStack(tps); }
+
+    public static ItemStack getPingIcon() { return new ItemStack(ping); }
 
     public ItemStack nextButton(String displayName, LogType logType, int page, List<String> lore) {
         ItemStack button = new ItemStack(getPageSelectorIcon());
@@ -559,4 +565,42 @@ public class Buttons {
         return item;
     }
 
+    public ItemStack tps(UUID uuid, LogType logType, int tps) {
+        ItemStack item = new ItemStack(getTPSIcon());
+        MessageData messages = new MessageData();
+
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(messages.tps(tps));
+
+        item.setItemMeta(meta);
+
+        NBTWrapper nbt = new NBTWrapper(item);
+
+        nbt.setString("uuid", uuid.toString());
+        nbt.setString("logType", logType.name());
+        nbt.setFloat("tps", (float) tps);
+        item = nbt.setItemData();
+
+        return item;
+
+    }
+
+    public ItemStack ping(UUID uuid, LogType logType, float ping) {
+        ItemStack item = new ItemStack(getPingIcon());
+        MessageData messages = new MessageData();
+
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(messages.ping(String.valueOf(ping)));
+
+        item.setItemMeta(meta);
+
+        NBTWrapper nbt = new NBTWrapper(item);
+
+        nbt.setString("uuid", uuid.toString());
+        nbt.setString("logType", logType.name());
+        nbt.setFloat("ping", ping);
+        item = nbt.setItemData();
+
+        return item;
+    }
 }

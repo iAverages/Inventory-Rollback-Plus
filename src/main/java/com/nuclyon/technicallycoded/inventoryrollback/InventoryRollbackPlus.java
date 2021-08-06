@@ -1,5 +1,6 @@
 package com.nuclyon.technicallycoded.inventoryrollback;
 
+import com.danielraybone.inventoryrollback.TPSUtil;
 import com.nuclyon.technicallycoded.inventoryrollback.commands.Commands;
 import com.nuclyon.technicallycoded.inventoryrollback.UpdateChecker.UpdateResult;
 
@@ -54,6 +55,7 @@ public class InventoryRollbackPlus extends InventoryRollback {
         getServer().getPluginManager().registerEvents(new ClickGUI(), this);
         getServer().getPluginManager().registerEvents(new EventLogs(), this);
         PaperLib.suggestPaper(this);
+        Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new TPSUtil(), 100L, 1L);
     }
 
     @Override

@@ -234,6 +234,42 @@ public class PlayerData {
         }
     }
 
+    public void setTPS(Integer tps) {
+        if (ConfigData.getSaveType() == SaveType.YAML) {
+            yaml.setTPS(tps);
+        } else if (ConfigData.getSaveType() == SaveType.MYSQL) {
+            mysql.setTPS(tps);
+        }
+    }
+
+    public void setPing(Integer ping) {
+        if (ConfigData.getSaveType() == SaveType.YAML) {
+            yaml.setPing(ping);
+        } else if (ConfigData.getSaveType() == SaveType.MYSQL) {
+            mysql.setPing(ping);
+        }
+    }
+
+    public int getTPS() {
+        int tps = 0;
+        if (ConfigData.getSaveType() == SaveType.YAML) {
+            tps = yaml.getTPS();
+        } else if (ConfigData.getSaveType() == SaveType.MYSQL) {
+            tps = mysql.getTPS();
+        }
+        return tps;
+    }
+
+    public int getPing() {
+        int ping = 0;
+        if (ConfigData.getSaveType() == SaveType.YAML) {
+            ping = yaml.getPing();
+        } else if (ConfigData.getSaveType() == SaveType.MYSQL) {
+            ping = mysql.getPing();
+        }
+        return ping;
+    }
+
     public void getRollbackMenuData() {
         if (ConfigData.getSaveType() == SaveType.MYSQL) {
             try {

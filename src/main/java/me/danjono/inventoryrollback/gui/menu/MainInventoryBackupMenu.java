@@ -28,6 +28,8 @@ public class MainInventoryBackupMenu {
 	private int hunger;
 	private float saturation;
 	private float xp;
+	private int tps;
+	private int ping;
 	
     private Buttons buttons;
     private Inventory inventory;
@@ -45,6 +47,8 @@ public class MainInventoryBackupMenu {
 		this.hunger = data.getFoodLevel();
 		this.saturation = data.getSaturation();
 		this.xp = data.getXP();
+		this.ping = data.getPing();
+		this.tps = data.getTPS();
 		
 		this.buttons = new Buttons(playerUUID);
 		
@@ -87,8 +91,8 @@ public class MainInventoryBackupMenu {
 		
 		//Add armour
 		if (armour.length > 0) {
-			for (int i = 0; i < armour.length; i++) {
-			    inventory.setItem(position, armour[i]);
+			for (ItemStack itemStack : armour) {
+				inventory.setItem(position, itemStack);
 				position--;
 			}
 		} else {
@@ -104,8 +108,14 @@ public class MainInventoryBackupMenu {
 				
 		//Add restore all player inventory button
 		if (ConfigData.isRestoreToPlayerButton())
-		    inventory.setItem(48, buttons.restoreAllInventory(logType, timestamp));
-		
+		    inventory.setItem(46, buttons.restoreAllInventory(logType, timestamp));
+
+		//Add Ping item
+		inventory.setItem(47, buttons.ping(playerUUID, logType, ping));
+
+		//Add TPS item
+		inventory.setItem(48, buttons.tps(playerUUID, logType, tps));
+
 		//Add teleport back button
 		inventory.setItem(49, buttons.enderPearlButton(logType, location));
 		
@@ -120,6 +130,7 @@ public class MainInventoryBackupMenu {
 		
 		//Add Experience Bottle			
 		inventory.setItem(53, buttons.experiencePotion(logType, xp));
+
 	}
 		
 }

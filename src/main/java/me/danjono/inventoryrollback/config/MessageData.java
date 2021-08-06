@@ -104,6 +104,9 @@ public class MessageData {
     private static String previousPageButton;
     private static String backButton;
 
+    private static String showTPS;
+    private static String showPing;
+
     public void setMessages() {
         setNoPermission(convertColourCodes((String) getDefaultValue("commands.no-permission", "&cYou do not have permission!")));
         setError(convertColourCodes((String) getDefaultValue("commands.error", "&cInvalid command.")));
@@ -158,6 +161,9 @@ public class MessageData {
         setNextPageButton(convertColourCodes((String) getDefaultValue("menu-buttons.next-page", "&fNext Page")));
         setPreviousPageButton(convertColourCodes((String) getDefaultValue("menu-buttons.previous-page", "&fPrevious Page")));
         setBackButton(convertColourCodes((String) getDefaultValue("menu-buttons.back-page", "&fBack")));
+
+        showTPS = convertColourCodes((String) getDefaultValue("messages.showTPS", "&f&lTPS: %TPS%"));
+        showPing = convertColourCodes((String) getDefaultValue("messages.showPing", "&f&lPing: %PING%"));
 
         if (saveChanges())
             saveConfig();
@@ -564,5 +570,13 @@ public class MessageData {
 
     private boolean saveChanges() {
         return saveChanges;
+    }
+
+    public String tps(int tps) {
+        return showTPS.replaceAll("%TPS%", String.valueOf(tps));
+    }
+
+    public String ping(String ping) {
+        return showPing.replaceAll("%PING%", ping);
     }
 }
