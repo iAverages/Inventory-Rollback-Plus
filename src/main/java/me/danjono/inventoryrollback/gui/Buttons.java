@@ -30,22 +30,46 @@ import me.danjono.inventoryrollback.reflections.NBTWrapper;
 public class Buttons {
 
     private UUID uuid;
-    
+
     private static final Material death = Material.BONE;
-    private static final Material join = InventoryRollbackPlus.getInstance().getVersion().isAtLeast(EnumNmsVersion.v1_13_R1) ? Material.OAK_SAPLING : Material.getMaterial("SAPLING");
-    private static final Material quit = InventoryRollbackPlus.getInstance().getVersion().isAtLeast(EnumNmsVersion.v1_13_R1) ? Material.RED_BED : Material.getMaterial("BED");
+
+    private static final Material join =
+            InventoryRollbackPlus.getInstance().getVersion().isAtLeast(EnumNmsVersion.v1_13_R1) ?
+                    Material.OAK_SAPLING : Material.getMaterial("SAPLING");
+
+    private static final Material quit =
+            InventoryRollbackPlus.getInstance().getVersion().isAtLeast(EnumNmsVersion.v1_13_R1) ?
+                    Material.RED_BED : Material.getMaterial("BED");
+
     private static final Material worldChange = Material.COMPASS;
+
     private static final Material forceSave = Material.DIAMOND;
 
-    private static final Material pageSelector = InventoryRollbackPlus.getInstance().getVersion().isAtLeast(EnumNmsVersion.v1_13_R1) ? Material.WHITE_BANNER : Material.getMaterial("BANNER");
+
+    private static final Material pageSelector =
+            InventoryRollbackPlus.getInstance().getVersion().isAtLeast(EnumNmsVersion.v1_13_R1) ?
+                    Material.WHITE_BANNER : Material.getMaterial("BANNER");
+
     private static final Material teleport = Material.ENDER_PEARL;
+
     private static final Material enderChest = Material.ENDER_CHEST;
-    private static final Material health = InventoryRollbackPlus.getInstance().getVersion().isAtLeast(EnumNmsVersion.v1_13_R1) ? Material.MELON_SLICE : Material.getMaterial("MELON");
+
+    private static final Material health =
+            InventoryRollbackPlus.getInstance().getVersion().isAtLeast(EnumNmsVersion.v1_13_R1) ?
+                    Material.MELON_SLICE : Material.getMaterial("MELON");
+
     private static final Material hunger = Material.ROTTEN_FLESH;
-    private static final Material experience = InventoryRollbackPlus.getInstance().getVersion().isAtLeast(EnumNmsVersion.v1_13_R1) ? Material.EXPERIENCE_BOTTLE : Material.getMaterial("EXP_BOTTLE");
+
+    private static final Material experience =
+            InventoryRollbackPlus.getInstance().getVersion().isAtLeast(EnumNmsVersion.v1_13_R1) ?
+                    Material.EXPERIENCE_BOTTLE : Material.getMaterial("EXP_BOTTLE");
+
     private static final Material restoreAllInventory = Material.NETHER_STAR;
     private static final Material tps = Material.REDSTONE;
     private static final Material ping = Material.REDSTONE;
+
+    private static final Material restoreAllInventoryDisabled = Material.REDSTONE_BLOCK;
+
 
     public Buttons(UUID uuid) {
         this.uuid = uuid;
@@ -103,9 +127,17 @@ public class Buttons {
         return restoreAllInventory;
     }
 
-    public static ItemStack getTPSIcon() { return new ItemStack(tps); }
+    public static ItemStack getTPSIcon() { 
+        return new ItemStack(tps); 
+    }
 
-    public static ItemStack getPingIcon() { return new ItemStack(ping); }
+    public static ItemStack getPingIcon() { 
+        return new ItemStack(ping); 
+    }
+
+    public static Material getRestoreAllInventoryDisabledIcon() {
+        return restoreAllInventoryDisabled;
+    }
 
     public ItemStack nextButton(String displayName, LogType logType, int page, List<String> lore) {
         ItemStack button = new ItemStack(getPageSelectorIcon());
@@ -175,6 +207,76 @@ public class Buttons {
         return button;
     }
 
+    public ItemStack enderChestNextButton(String displayName, LogType logType, int page, Long timestamp, List<String> lore) {
+        ItemStack button = new ItemStack(getPageSelectorIcon());
+        BannerMeta meta = (BannerMeta) button.getItemMeta();
+
+        List<Pattern> patterns = new ArrayList<>();
+        patterns.add(new Pattern(DyeColor.BLACK, PatternType.BASE));
+        patterns.add(new Pattern(DyeColor.WHITE, PatternType.RHOMBUS_MIDDLE));
+        patterns.add(new Pattern(DyeColor.BLACK, PatternType.HALF_VERTICAL));
+        patterns.add(new Pattern(DyeColor.GRAY, PatternType.BORDER));
+
+        assert meta != null;
+        meta.setPatterns(patterns);
+
+        meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+
+        if (displayName != null) {
+            meta.setDisplayName(displayName);
+        }
+
+        meta.setLore(lore);
+
+        button.setItemMeta(meta);
+
+        NBTWrapper nbt = new NBTWrapper(button);
+
+        nbt.setString("uuid", uuid.toString());
+        nbt.setString("logType", logType.name());
+        nbt.setLong("timestamp", timestamp);
+        nbt.setInt("page", page);
+        button = nbt.setItemData();
+
+        return button;
+    }
+
+    public ItemStack enderChestBackButton(String displayName, LogType logType, int page, Long timestamp, List<String> lore) {
+        ItemStack button = new ItemStack(getPageSelectorIcon());
+        BannerMeta meta = (BannerMeta) button.getItemMeta();
+
+        List<Pattern> patterns = new ArrayList<>();
+        patterns.add(new Pattern(DyeColor.BLACK, PatternType.BASE));
+        patterns.add(new Pattern(DyeColor.WHITE, PatternType.RHOMBUS_MIDDLE));
+        patterns.add(new Pattern(DyeColor.BLACK, PatternType.HALF_VERTICAL_MIRROR));
+        patterns.add(new Pattern(DyeColor.GRAY, PatternType.BORDER));
+
+        assert meta != null;
+        meta.setPatterns(patterns);
+
+        meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+
+        if (displayName != null) {
+            meta.setDisplayName(displayName);
+        }
+
+        if (lore != null) {
+            meta.setLore(lore);
+        }
+
+        button.setItemMeta(meta);
+
+        NBTWrapper nbt = new NBTWrapper(button);
+
+        nbt.setString("uuid", uuid.toString());
+        nbt.setString("logType", logType.name());
+        nbt.setLong("timestamp", timestamp);
+        nbt.setInt("page", page);
+        button = nbt.setItemData();
+
+        return button;
+    }
+
     public ItemStack mainMenuBackButton(String displayName) {
         ItemStack button = new ItemStack(getPageSelectorIcon());
         BannerMeta meta = (BannerMeta) button.getItemMeta();
@@ -230,6 +332,8 @@ public class Buttons {
         nbt.setString("uuid", uuid.toString());
         nbt.setString("logType", logType.name());
         nbt.setLong("timestamp", timestamp);
+        nbt.setInt("page", 0);
+
         button = nbt.setItemData();
 
         return button;
@@ -551,7 +655,35 @@ public class Buttons {
 
         ItemMeta meta = item.getItemMeta();
         assert meta != null;
-        meta.setDisplayName(ChatColor.RED + "Overwrite player inventory with backup");
+        meta.setDisplayName(MessageData.getMainInventoryRestoreButton());
+
+        item.setItemMeta(meta);
+
+        NBTWrapper nbt = new NBTWrapper(item);
+
+        nbt.setString("uuid", uuid.toString());
+        nbt.setString("logType", logType.name());
+        nbt.setLong("timestamp", timestamp);
+        item = nbt.setItemData();
+
+        return item;
+    }
+
+    public ItemStack restoreAllInventoryDisabled(LogType logType, Long timestamp) {
+        ItemStack item = new ItemStack(getRestoreAllInventoryDisabledIcon());
+
+        ItemMeta meta = item.getItemMeta();
+        assert meta != null;
+
+        String[] nameParts = MessageData.getMainInventoryDisabledButton().split("\\\\n");
+        String titlePart = nameParts[0];
+        ArrayList<String> loreParts = new ArrayList<>();
+
+        meta.setDisplayName(titlePart);
+        for (int i = 1; i < nameParts.length; i ++) {
+            loreParts.add(nameParts[i]);
+        }
+        meta.setLore(loreParts);
 
         item.setItemMeta(meta);
 

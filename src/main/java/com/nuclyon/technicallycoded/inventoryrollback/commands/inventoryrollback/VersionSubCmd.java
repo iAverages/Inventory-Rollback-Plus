@@ -8,15 +8,15 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-public class Version extends IRPCommand {
+public class VersionSubCmd extends IRPCommand {
 
-    public Version(InventoryRollbackPlus mainIn) {
+    public VersionSubCmd(InventoryRollbackPlus mainIn) {
         super(mainIn);
     }
 
     @Override
     public void onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        StringBuilder strb = new StringBuilder(MessageData.getPluginName());
+        StringBuilder strb = new StringBuilder(MessageData.getPluginPrefix());
         boolean hasVersionPerm = sender.hasPermission("inventoryrollbackplus.version") || sender.hasPermission("inventoryrollback.version");
 
         strb.append("\n")
