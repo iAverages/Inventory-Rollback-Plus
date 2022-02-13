@@ -1,12 +1,12 @@
 package me.danjono.inventoryrollback.data;
 
+import com.danielraybone.inventoryrollback.Numbers;
 import me.danjono.inventoryrollback.InventoryRollback;
 import me.danjono.inventoryrollback.config.ConfigData;
 import me.danjono.inventoryrollback.config.MessageData;
 import me.danjono.inventoryrollback.gui.InventoryName;
 import me.danjono.inventoryrollback.inventory.RestoreInventory;
 import me.danjono.inventoryrollback.inventory.SaveInventory;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
@@ -142,7 +142,7 @@ public class YAML {
             int pos = file.getName().lastIndexOf('.');
             String fileName = file.getName().substring(0, pos);
 
-            if (!StringUtils.isNumeric(fileName))
+            if (!Numbers.isNumeric(fileName))
                 continue;
 
             long timestamp = Long.parseLong(fileName);
@@ -185,7 +185,7 @@ public class YAML {
             int pos = file.getName().lastIndexOf('.');
             String fileName = file.getName().substring(0, pos);
 
-            if (!StringUtils.isNumeric(fileName))
+            if (!Numbers.isNumeric(fileName))
                 continue;
 
             long saveTimeStamp;

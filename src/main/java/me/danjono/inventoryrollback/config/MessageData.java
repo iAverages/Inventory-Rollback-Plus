@@ -198,8 +198,8 @@ public class MessageData {
         setPreviousPageButton(convertColorCodes((String) getDefaultValue("menu-buttons.previous-page", "&fPrevious Page")));
         setBackButton(convertColorCodes((String) getDefaultValue("menu-buttons.back-page", "&fBack")));
 
-        showTPS = convertColourCodes((String) getDefaultValue("messages.showTPS", "&f&lTPS: %TPS%"));
-        showPing = convertColourCodes((String) getDefaultValue("messages.showPing", "&f&lPing: %PING%"));
+        showTPS = convertColorCodes((String) getDefaultValue("messages.showTPS", "&f&lTPS: %TPS%"));
+        showPing = convertColorCodes((String) getDefaultValue("messages.showPing", "&f&lPing: %PING%"));
 
         if (saveChanges())
             saveConfig();

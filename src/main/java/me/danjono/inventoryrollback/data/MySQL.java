@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 
-import org.apache.commons.lang.StringUtils;
+import com.danielraybone.inventoryrollback.Numbers;
 import org.bukkit.inventory.ItemStack;
 
 import me.danjono.inventoryrollback.InventoryRollback;
@@ -492,7 +492,7 @@ public class MySQL {
                     int pos = backup.getName().lastIndexOf(".");
                     String fileName = backup.getName().substring(0, pos);
 
-                    if (!StringUtils.isNumeric(fileName))
+                    if (!Numbers.isNumeric(fileName))
                         continue;
 
                     Long timestamp = Long.parseLong(fileName);

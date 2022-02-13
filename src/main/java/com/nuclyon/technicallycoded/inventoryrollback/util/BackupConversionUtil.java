@@ -5,7 +5,6 @@ import me.danjono.inventoryrollback.config.ConfigData;
 import me.danjono.inventoryrollback.config.MessageData;
 import me.danjono.inventoryrollback.data.LogType;
 import me.danjono.inventoryrollback.data.PlayerData;
-import me.danjono.inventoryrollback.data.YAML;
 import me.danjono.inventoryrollback.inventory.RestoreInventory;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
@@ -13,7 +12,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -217,7 +215,7 @@ public class BackupConversionUtil {
         }
     }
 
-    public static YamlConfiguration loadConfiguration(@NotNull File file) {
+    public static YamlConfiguration loadConfiguration( File file) {
         Validate.notNull(file, "File cannot be null");
         YamlConfiguration config;
 

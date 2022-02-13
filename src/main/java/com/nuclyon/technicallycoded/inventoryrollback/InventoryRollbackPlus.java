@@ -1,9 +1,8 @@
 package com.nuclyon.technicallycoded.inventoryrollback;
 
 import com.danielraybone.inventoryrollback.TPSUtil;
-import com.nuclyon.technicallycoded.inventoryrollback.commands.Commands;
 import com.nuclyon.technicallycoded.inventoryrollback.UpdateChecker.UpdateResult;
-
+import com.nuclyon.technicallycoded.inventoryrollback.commands.Commands;
 import com.nuclyon.technicallycoded.inventoryrollback.nms.EnumNmsVersion;
 import com.nuclyon.technicallycoded.inventoryrollback.util.TimeZoneUtil;
 import io.papermc.lib.PaperLib;
@@ -12,13 +11,10 @@ import me.danjono.inventoryrollback.config.ConfigData;
 import me.danjono.inventoryrollback.config.MessageData;
 import me.danjono.inventoryrollback.listeners.ClickGUI;
 import me.danjono.inventoryrollback.listeners.EventLogs;
-import org.bstats.bukkit.Metrics;
-import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
 
-import java.util.TimeZone;
 import java.util.logging.Level;
 
 public class InventoryRollbackPlus extends InventoryRollback {
@@ -56,9 +52,6 @@ public class InventoryRollbackPlus extends InventoryRollback {
 
         // Storage Init & Update checker
         super.startupTasks();
-
-        // bStats
-        if (ConfigData.isbStatsEnabled()) initBStats();
 
         // Commands
         PluginCommand plCmd = getCommand("inventoryrollbackplus");
@@ -145,44 +138,6 @@ public class InventoryRollbackPlus extends InventoryRollback {
             }
 
         });
-    }
-
-    public void initBStats() {
-        bStats();
-    }
-
-    @Override
-    public void bStats() {
-        Metrics metrics = new Metrics(this,  	9437);
-
-        if (ConfigData.isbStatsEnabled())
-            getPluginLogger().info(MessageData.getPluginPrefix() + "bStats are enabled");
-
-        metrics.addCustomChart(new SimplePie("database_type", () -> ConfigData.getSaveType().getName()));
-
-        metrics.addCustomChart(new SimplePie("restore_to_player_enabled", () -> {
-            if (ConfigData.isRestoreToPlayerButton()) {
-                return "Enabled";
-            } else {
-                return "Disabled";
-            }
-        }));
-
-        metrics.addCustomChart(new SimplePie("save_location", () -> {
-            if (ConfigData.getFolderLocation() == InventoryRollback.getInstance().getDataFolder()) {
-                return "Default";
-            } else {
-                return "Not Default";
-            }
-        }));
-
-        metrics.addCustomChart(new SimplePie("storage_type", () -> {
-            if (ConfigData.isMySQLEnabled()) {
-                return "MySQL";
-            } else {
-                return "YAML";
-            }
-        }));
     }
 
     // GETTERS

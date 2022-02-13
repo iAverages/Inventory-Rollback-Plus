@@ -1,15 +1,14 @@
 package com.nuclyon.technicallycoded.inventoryrollback.util;
 
-import com.google.common.collect.ImmutableMap;
-
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 public class TimeZoneUtil {
 
-    private ImmutableMap<String, String> shortCodeUTCOffsets;
-    private ImmutableMap<String, String> shortCodesNames;
+    private Map<String, String> shortCodeUTCOffsets;
+    private Map<String, String> shortCodesNames;
 
     public TimeZoneUtil() {
         this.loadDefaultData();
@@ -509,8 +508,8 @@ public class TimeZoneUtil {
         shortCodeNamesBuilder.put("YEKT", "Yekaterinburg Time");
 
 
-        this.shortCodeUTCOffsets = ImmutableMap.copyOf(offsetsMapBuilder);
-        this.shortCodesNames = ImmutableMap.copyOf(shortCodeNamesBuilder);
+        this.shortCodeUTCOffsets =  offsetsMapBuilder;
+        this.shortCodesNames =  shortCodeNamesBuilder;
 
     }
 

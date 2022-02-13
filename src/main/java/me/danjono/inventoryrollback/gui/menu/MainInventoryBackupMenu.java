@@ -33,23 +33,9 @@ public class MainInventoryBackupMenu {
 	private final int hunger;
 	private final float saturation;
 	private final float xp;
-	
-	private Player staff;
-	private UUID playerUUID;
-	private LogType logType;
-	private Long timestamp;
-	private ItemStack[] mainInventory;
-	private ItemStack[] armour;
-	private ItemStack[] enderChest;
-	private String location;
-	private double health;
-	private int hunger;
-	private float saturation;
-	private float xp;
-	private int tps;
-	private int ping;
-	
-    private Buttons buttons;
+	private final int tps;
+	private final int ping;
+
     private final Buttons buttons;
     private Inventory inventory;
 	
