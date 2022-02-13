@@ -1,23 +1,21 @@
 package me.danjono.inventoryrollback.config;
 
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.time.ZoneId;
-import java.time.zone.ZoneRulesException;
-import java.util.TimeZone;
-import java.util.logging.Level;
-
+import com.nuclyon.technicallycoded.inventoryrollback.InventoryRollbackPlus;
+import me.danjono.inventoryrollback.InventoryRollback;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import me.danjono.inventoryrollback.InventoryRollback;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
+import java.util.logging.Level;
 
 public class ConfigData {
 
     private File configurationFile;
     private FileConfiguration configuration;
-    private static String configurationFileName = "config.yml";
+    private static final String configurationFileName = "config.yml";
 
     public ConfigData() {
         generateConfigFile();
@@ -59,7 +57,7 @@ public class ConfigData {
         
         private final String name;
 
-        private SaveType(String name) {
+        SaveType(String name) {
             this.name = name;
         }
         
@@ -93,7 +91,9 @@ public class ConfigData {
     private static int maxSavesWorldChange;
     private static int maxSavesForce;
 
+    private static long timeZoneOffsetMillis;
     private static TimeZone timeZone;
+    private static String timeZoneName;
     private static SimpleDateFormat timeFormat;
 
     private static boolean updateChecker;
@@ -114,11 +114,12 @@ public class ConfigData {
                 setFolderLocation(InventoryRollback.getInstance().getDataFolder());
             }
         }
-        setSaveType(SaveType.YAML);
 
         setMySQLEnabled((boolean) getDefaultValue("mysql.enabled", false));
         if (isMySQLEnabled())
-            setSaveType(SaveType.MYSQL);            
+            setSaveType(SaveType.MYSQL);
+        else
+            setSaveType(SaveType.YAML);
 
         setMySQLHost((String) getDefaultValue("mysql.details.host", "127.0.0.1"));
         setMySQLPort((int) getDefaultValue("mysql.details.port", 3306));
@@ -237,10 +238,12 @@ public class ConfigData {
 
     public static void setTimeZone(String zone) {
         try {
-            timeZone = TimeZone.getTimeZone(ZoneId.of(zone));
-        } catch (ZoneRulesException e) {
-            timeZone = TimeZone.getTimeZone("GMT");
-            InventoryRollback.getInstance().getLogger().log(Level.WARNING, ("Time zone ID \"" + zone + "\" in config.yml is not valid. Defaulting to \"GMT\""));
+            timeZone = TimeZone.getTimeZone(zone);
+            timeZoneName = zone;
+            timeZoneOffsetMillis = InventoryRollbackPlus.getInstance().getTimeZoneUtil().getMillisOffsetAtTimeZone(zone);
+        } catch (IllegalArgumentException | NullPointerException ex) {
+            timeZoneOffsetMillis = 0L;
+            InventoryRollback.getInstance().getLogger().log(Level.WARNING, ("Time zone \"" + zone + "\" in config.yml is invalid. Defaulting to \"UTC\""));
         }
     }
 
@@ -339,6 +342,10 @@ public class ConfigData {
 
     public static int getMaxSavesForce() {
         return maxSavesForce;
+    }
+
+    public static long getTimeZoneOffsetMillis() {
+        return timeZoneOffsetMillis;
     }
 
     public static TimeZone getTimeZone() {

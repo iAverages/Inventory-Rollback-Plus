@@ -1,3 +1,4 @@
+# Original messages by https://github.com/danjono & https://github.com/TechnicallyCoded
 general:
   prefix: '&f[&bInventoryRollbackPlus&f]&r '
 
@@ -46,7 +47,7 @@ attribute-restore:
     button-name: '&2Restore Player XP'
     button-lore: '&rLevel %XP%'
 
-death-location:  
+death-location:
   world: '&6World: &f%WORLD%'
   x: '&6X: &f%X%'
   y: '&6Y: &f%Y%'

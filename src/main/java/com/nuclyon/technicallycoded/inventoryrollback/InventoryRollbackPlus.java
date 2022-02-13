@@ -5,21 +5,28 @@ import com.nuclyon.technicallycoded.inventoryrollback.commands.Commands;
 import com.nuclyon.technicallycoded.inventoryrollback.UpdateChecker.UpdateResult;
 
 import com.nuclyon.technicallycoded.inventoryrollback.nms.EnumNmsVersion;
+import com.nuclyon.technicallycoded.inventoryrollback.util.TimeZoneUtil;
 import io.papermc.lib.PaperLib;
 import me.danjono.inventoryrollback.InventoryRollback;
 import me.danjono.inventoryrollback.config.ConfigData;
 import me.danjono.inventoryrollback.config.MessageData;
 import me.danjono.inventoryrollback.listeners.ClickGUI;
 import me.danjono.inventoryrollback.listeners.EventLogs;
+import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
 
+import java.util.TimeZone;
 import java.util.logging.Level;
 
 public class InventoryRollbackPlus extends InventoryRollback {
 
     private static InventoryRollbackPlus instancePlus;
+
+    private TimeZoneUtil timeZoneUtil = null;
+
     private ConfigData configData;
     private EnumNmsVersion version = EnumNmsVersion.v1_13_R1;
 
@@ -32,28 +39,39 @@ public class InventoryRollbackPlus extends InventoryRollback {
         instancePlus = this;
         InventoryRollback.setInstance(instancePlus);
 
+        // Load Utils
+        this.timeZoneUtil = new TimeZoneUtil();
+
+        // Init NMS
         InventoryRollback.setPackageVersion(Bukkit.getServer().getClass().getPackage().getName()
                 .replace(".",  ",").split(",")[3]);
 
         if (!this.isCompatible()) {
-            getLogger().log(Level.WARNING, MessageData.getPluginName() + "\n" + ChatColor.RED +
+            getLogger().log(Level.WARNING, MessageData.getPluginPrefix() + "\n" + ChatColor.RED +
                     " ** WARNING... Plugin may not be compatible with this version of Minecraft. **\n" +
                     " ** Please fully test the plugin before using on your server as features may be broken. **\n" +
-                    MessageData.getPluginName()
+                    MessageData.getPluginPrefix()
             );
         }
 
+        // Storage Init & Update checker
         super.startupTasks();
 
+        // bStats
         if (ConfigData.isbStatsEnabled()) initBStats();
 
+        // Commands
         PluginCommand plCmd = getCommand("inventoryrollbackplus");
         Commands cmds = new Commands(this);
         if (plCmd == null) return;
         plCmd.setExecutor(cmds);
         plCmd.setTabCompleter(cmds);
+
+        // Events
         getServer().getPluginManager().registerEvents(new ClickGUI(), this);
         getServer().getPluginManager().registerEvents(new EventLogs(), this);
+
+        // PaperLib
         PaperLib.suggestPaper(this);
         Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new TPSUtil(), 100L, 1L);
     }
@@ -66,10 +84,6 @@ public class InventoryRollbackPlus extends InventoryRollback {
 
     public void setVersion(EnumNmsVersion versionName) {
         version = versionName;
-    }
-
-    public EnumNmsVersion getVersion() {
-        return version;
     }
 
     public boolean isCompatible() {
@@ -85,7 +99,7 @@ public class InventoryRollbackPlus extends InventoryRollback {
 
     public void checkUpdate() {
         Bukkit.getScheduler().runTaskAsynchronously(InventoryRollback.getInstance(), () -> {
-            getPluginLogger().log(Level.INFO, MessageData.getPluginName() + "Checking for updates...");
+            getPluginLogger().log(Level.INFO, MessageData.getPluginPrefix() + "Checking for updates...");
 
             final UpdateResult result = new UpdateChecker(getInstance(), 85811).getResult();
 
@@ -95,7 +109,7 @@ public class InventoryRollbackPlus extends InventoryRollback {
 
             switch (result.getType()) {
                 case FAIL_SPIGOT:
-                    getPluginLogger().log(Level.INFO, MessageData.getPluginName() + ChatColor.GOLD + "Warning: Could not contact Spigot to check if an update is available.");
+                    getPluginLogger().log(Level.INFO, MessageData.getPluginPrefix() + ChatColor.GOLD + "Warning: Could not contact Spigot to check if an update is available.");
                     break;
                 case UPDATE_LOW:
                     prioLevel = 1;
@@ -112,10 +126,10 @@ public class InventoryRollbackPlus extends InventoryRollback {
                     prioColor = ChatColor.RED.toString();
                     break;
                 case DEV_BUILD:
-                    getPluginLogger().log(Level.INFO, MessageData.getPluginName() + ChatColor.GOLD + "Warning: You are running an experimental/development build! Proceed with caution.");
+                    getPluginLogger().log(Level.INFO, MessageData.getPluginPrefix() + ChatColor.GOLD + "Warning: You are running an experimental/development build! Proceed with caution.");
                     break;
                 case NO_UPDATE:
-                    getPluginLogger().log(Level.INFO, MessageData.getPluginName() + ChatColor.RESET + "You are running the latest version.");
+                    getPluginLogger().log(Level.INFO, MessageData.getPluginPrefix() + ChatColor.RESET + "You are running the latest version.");
                     break;
                 default:
                     break;
@@ -134,7 +148,50 @@ public class InventoryRollbackPlus extends InventoryRollback {
     }
 
     public void initBStats() {
-        super.bStats();
+        bStats();
     }
 
+    @Override
+    public void bStats() {
+        Metrics metrics = new Metrics(this,  	9437);
+
+        if (ConfigData.isbStatsEnabled())
+            getPluginLogger().info(MessageData.getPluginPrefix() + "bStats are enabled");
+
+        metrics.addCustomChart(new SimplePie("database_type", () -> ConfigData.getSaveType().getName()));
+
+        metrics.addCustomChart(new SimplePie("restore_to_player_enabled", () -> {
+            if (ConfigData.isRestoreToPlayerButton()) {
+                return "Enabled";
+            } else {
+                return "Disabled";
+            }
+        }));
+
+        metrics.addCustomChart(new SimplePie("save_location", () -> {
+            if (ConfigData.getFolderLocation() == InventoryRollback.getInstance().getDataFolder()) {
+                return "Default";
+            } else {
+                return "Not Default";
+            }
+        }));
+
+        metrics.addCustomChart(new SimplePie("storage_type", () -> {
+            if (ConfigData.isMySQLEnabled()) {
+                return "MySQL";
+            } else {
+                return "YAML";
+            }
+        }));
+    }
+
+    // GETTERS
+
+    public EnumNmsVersion getVersion() {
+        return version;
+    }
+
+    public TimeZoneUtil getTimeZoneUtil() {
+        return this.timeZoneUtil;
+    }
 }

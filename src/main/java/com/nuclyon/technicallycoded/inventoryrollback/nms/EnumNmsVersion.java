@@ -1,7 +1,5 @@
 package com.nuclyon.technicallycoded.inventoryrollback.nms;
 
-import com.nuclyon.technicallycoded.inventoryrollback.InventoryRollbackPlus;
-
 public enum EnumNmsVersion {
     v1_8_R1,
     v1_8_R2,
@@ -18,14 +16,15 @@ public enum EnumNmsVersion {
     v1_16_R1,
     v1_16_R2,
     v1_16_R3,
-    v1_17_R1;
+    v1_17_R1,
+    v1_18_R1;
 
     public boolean isAtLeast(EnumNmsVersion version) {
-        return InventoryRollbackPlus.getInstance().getVersion().ordinal() >= version.ordinal();
+        return this.ordinal() >= version.ordinal();
     }
 
     public boolean isNoHigherThan(EnumNmsVersion version) {
-        return InventoryRollbackPlus.getInstance().getVersion().ordinal() <= version.ordinal();
+        return this.ordinal() <= version.ordinal();
     }
 
     public boolean isWithin(EnumNmsVersion versionLow, EnumNmsVersion versionHigh) {

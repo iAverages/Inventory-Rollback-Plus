@@ -6,15 +6,18 @@ import com.nuclyon.technicallycoded.inventoryrollback.nms.EnumNmsVersion;
 import me.danjono.inventoryrollback.InventoryRollback;
 import me.danjono.inventoryrollback.data.LogType;
 import me.danjono.inventoryrollback.data.PlayerData;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
 import java.io.ByteArrayOutputStream;
+import java.util.concurrent.CompletableFuture;
 
 public class SaveInventory {
 
@@ -40,14 +43,14 @@ public class SaveInventory {
 
     public void createSave() {
         Long timestamp = System.currentTimeMillis();
-        PlayerData data = new PlayerData(player, logType, timestamp);
 
-        //Remove excess saves if limit is reached
-        data.purgeExcessSaves();
+        ItemStack[] mainInvContents = null;
+        ItemStack[] mainInvArmor = null;
+        ItemStack[] enderInvContents = null;
 
         for (ItemStack item : mainInventory.getContents()) {
             if (item != null) {
-                data.setMainInventory(mainInventory.getContents());
+                mainInvContents = mainInventory.getContents();
                 break;
             }
         }
@@ -55,7 +58,7 @@ public class SaveInventory {
         if (main.getVersion().isNoHigherThan(EnumNmsVersion.v1_8_R3)) {
             for (ItemStack item : mainInventory.getArmorContents()) {
                 if (item != null) {
-                    data.setArmour(mainInventory.getArmorContents());
+                    mainInvArmor = mainInventory.getArmorContents();
                     break;
                 }
             }
@@ -64,29 +67,66 @@ public class SaveInventory {
         if (enderChestInventory.getContents().length > 0)
             for (ItemStack item : enderChestInventory.getContents()) {
                 if (item != null) {
-                    data.setEnderChest(enderChestInventory.getContents());
+                    enderInvContents = enderChestInventory.getContents();
                     break;
                 }
             }
 
-        data.setXP(getTotalExperience(player));
-        data.setHealth(player.getHealth());
-        data.setFoodLevel(player.getFoodLevel());
-        data.setSaturation(player.getSaturation());
-        data.setWorld(player.getWorld().getName());
-        data.setX(Math.floor(player.getLocation().getX()) + 0.5);
-        data.setY(Math.floor(player.getLocation().getY()));
-        data.setZ(Math.floor(player.getLocation().getZ()) + 0.5);
-        data.setLogType(logType);
-        data.setVersion(InventoryRollback.getPackageVersion());
-        data.setTPS((int) TPSUtil.getTPS());
-        data.setPing(getPing(player));
+        float totalXp = getTotalExperience(player);
+        double health = player.getHealth();
+        int foodLevel = player.getFoodLevel();
+        float saturation = player.getSaturation();
+        String worldName = player.getWorld().getName();
 
-        if (causeAlias != null) data.setDeathReason(causeAlias);
-        else if (deathCause != null) data.setDeathReason(deathCause.name());
-        //else data.setDeathReason("UNKNOWN");
+        // Location data
+        Location pLoc = player.getLocation();
+        // Multiply by 10, truncate, divide by 10
+        // This has the effect of only keeping 1 decimal of precision
+        double locX = ((int)(pLoc.getX() * 10)) / 10d;
+        double locY = ((int)(pLoc.getY() * 10)) / 10d;
+        double locZ = ((int)(pLoc.getZ() * 10)) / 10d;
 
-        data.saveData();
+        // Final vars
+        ItemStack[] finalMainInvContents = mainInvContents;
+        ItemStack[] finalMainInvArmor = mainInvArmor;
+        ItemStack[] finalEnderInvContents = enderInvContents;
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                PlayerData data = new PlayerData(player, logType, timestamp);
+
+                if (finalMainInvContents != null) data.setMainInventory(finalMainInvContents);
+                if (finalMainInvArmor != null) data.setArmour(finalMainInvArmor);
+                if (finalEnderInvContents != null) data.setEnderChest(finalEnderInvContents);
+
+                data.setXP(totalXp);
+                data.setHealth(health);
+                data.setFoodLevel(foodLevel);
+                data.setSaturation(saturation);
+                data.setWorld(worldName);
+
+                data.setX(locX);
+                data.setY(locY);
+                data.setZ(locZ);
+
+                data.setLogType(logType);
+                data.setVersion(InventoryRollback.getPackageVersion());
+                data.setTPS((int) TPSUtil.getTPS());
+                data.setPing(getPing(player));
+
+                if (causeAlias != null) data.setDeathReason(causeAlias);
+                else if (deathCause != null) data.setDeathReason(deathCause.name());
+                else if (logType == LogType.DEATH) data.setDeathReason("UNKNOWN");
+
+                // Remove excess saves if limit is reached
+                CompletableFuture<Void> purgeTask = data.purgeExcessSaves();
+
+                // Save new data
+                purgeTask.thenRun(data::saveData);
+            }
+        }.runTaskAsynchronously(main);
+
     }
 
     public static int getPing(Player player) {
@@ -94,10 +134,6 @@ public class SaveInventory {
     }
 
     //Conversion to Base64 code courtesy of github.com/JustRayz
-    public static String toBase64(Inventory inventory) {
-        return toBase64(inventory.getContents());
-    }
-
     public static String toBase64(ItemStack[] contents) {
         boolean convert = false;
 
@@ -119,7 +155,8 @@ public class SaveInventory {
                     dataOutput.writeObject(stack);
                 }
                 dataOutput.close();
-                return Base64Coder.encodeLines(outputStream.toByteArray());
+                byte[] byteArr = outputStream.toByteArray();
+                return Base64Coder.encodeLines(byteArr);
             } catch (Exception e) {
                 throw new IllegalStateException("Unable to save item stacks.", e);
             }

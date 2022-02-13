@@ -1,5 +1,16 @@
 package me.danjono.inventoryrollback.data;
 
+import me.danjono.inventoryrollback.InventoryRollback;
+import me.danjono.inventoryrollback.config.ConfigData;
+import me.danjono.inventoryrollback.config.MessageData;
+import me.danjono.inventoryrollback.gui.InventoryName;
+import me.danjono.inventoryrollback.inventory.RestoreInventory;
+import me.danjono.inventoryrollback.inventory.SaveInventory;
+import org.apache.commons.lang.StringUtils;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,25 +20,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 
-import org.apache.commons.lang.StringUtils;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.inventory.ItemStack;
-
-import me.danjono.inventoryrollback.InventoryRollback;
-import me.danjono.inventoryrollback.config.ConfigData;
-import me.danjono.inventoryrollback.config.MessageData;
-import me.danjono.inventoryrollback.gui.InventoryName;
-import me.danjono.inventoryrollback.inventory.RestoreInventory;
-import me.danjono.inventoryrollback.inventory.SaveInventory;
-
 public class YAML {
 
-    private UUID uuid;
-
-    private File backupFolder;
-    private File backupFile;
-    private YamlConfiguration data;
+    private final UUID uuid;
+    private final Long timestamp;
+    private final File playerBackupFolder;
+    private final File backupFile;
+    private final YamlConfiguration data;
 
     private String mainInventory;
     private String armour;
@@ -46,19 +45,20 @@ public class YAML {
     private Integer tps;
     private Integer ping;
 
-    private static String backup = "backups";
+    private static final String backupFolderName = "backups";
 
-    public YAML(UUID uuid, LogType logType, Long timestamp) {
+    public YAML(UUID uuid, LogType logType, Long timestampIn) {
         this.uuid = uuid;
-        this.logType = logType; 
-        this.backupFolder = getBackupLocation();
-        this.backupFile = new File (backupFolder, timestamp + ".yml");
+        this.logType = logType;
+        this.timestamp = timestampIn;
+        this.playerBackupFolder = getPlayerBackupLocation(logType, uuid);
+        this.backupFile = new File (playerBackupFolder, timestamp + ".yml");
         this.data = YamlConfiguration.loadConfiguration(backupFile);
     }
 
     public static void createStorageFolders() {        
         //Create folder for where player inventories will be saved
-        File savesFolder = new File(ConfigData.getFolderLocation().getAbsoluteFile(), backup);
+        File savesFolder = new File(ConfigData.getFolderLocation().getAbsoluteFile(), backupFolderName);
         if(!savesFolder.exists())
             savesFolder.mkdir();
 
@@ -88,22 +88,30 @@ public class YAML {
             forceSavesFolder.mkdir();
     }
 
-    private File getBackupLocation() {          
-        File backupLocation = null;
+    private static File getRootBackupsFolder() {
+        return new File(ConfigData.getFolderLocation(), backupFolderName);
+    }
 
-        if (logType == LogType.JOIN) {
-            backupLocation = new File(ConfigData.getFolderLocation(), backup + "/joins/" + uuid);
-        } else if (logType == LogType.QUIT) {
-            backupLocation = new File(ConfigData.getFolderLocation(), backup + "/quits/" + uuid);
-        } else if (logType == LogType.DEATH) {
-            backupLocation = new File(ConfigData.getFolderLocation(), backup + "/deaths/" + uuid);
-        } else if (logType == LogType.WORLD_CHANGE) {
-            backupLocation = new File(ConfigData.getFolderLocation(), backup + "/worldChanges/" + uuid);
-        } else if (logType == LogType.FORCE) {
-            backupLocation = new File(ConfigData.getFolderLocation(), backup + "/force/" + uuid);
+    private static File getBackupFolderForLogType(LogType backupLogType) {
+        File backupLocation = getRootBackupsFolder();
+
+        if (backupLogType == LogType.JOIN) {
+            backupLocation = new File(backupLocation, "joins");
+        } else if (backupLogType == LogType.QUIT) {
+            backupLocation = new File(backupLocation, "quits");
+        } else if (backupLogType == LogType.DEATH) {
+            backupLocation = new File(backupLocation, "deaths");
+        } else if (backupLogType == LogType.WORLD_CHANGE) {
+            backupLocation = new File(backupLocation, "worldChanges");
+        } else if (backupLogType == LogType.FORCE) {
+            backupLocation = new File(backupLocation, "force");
         }
 
         return backupLocation;
+    }
+
+    private static File getPlayerBackupLocation(LogType backupLogType, UUID playerUUID) {
+        return new File(getBackupFolderForLogType(backupLogType), playerUUID.toString());
     }
 
     public boolean doesBackupTypeExist() {
@@ -111,19 +119,23 @@ public class YAML {
     }
 
     public int getAmountOfBackups() {         
-        if (!backupFolder.exists())
-            return 0;
+        if (!playerBackupFolder.exists()) return 0;
 
-        return backupFolder.list().length;
+        String[] filesArr = playerBackupFolder.list();
+        if (filesArr == null) return 0;
+
+        return filesArr.length;
     }
 
     public List<Long> getSelectedPageTimestamps(int pageNumber) {
         List<Long> allTimeStamps = new ArrayList<>();
 
-        if (!backupFolder.exists())
+        if (!playerBackupFolder.exists())
             return allTimeStamps;
 
-        for (File file : backupFolder.listFiles()) {
+        long currTime = System.currentTimeMillis();
+
+        for (File file : playerBackupFolder.listFiles()) {
             if (file.isDirectory())
                 continue;
 
@@ -133,7 +145,9 @@ public class YAML {
             if (!StringUtils.isNumeric(fileName))
                 continue;
 
-            allTimeStamps.add(Long.parseLong(fileName));
+            long timestamp = Long.parseLong(fileName);
+            // Make sure that the file isn't newer than 1 second: we could still be writing to it
+            if (currTime - timestamp > 1000) allTimeStamps.add(timestamp);
         }
 
         //Set timestamps in order
@@ -161,7 +175,10 @@ public class YAML {
     public void purgeExcessSaves(int deleteAmount) {
         List<Long> timeSaved = new ArrayList<>();
 
-        for (File file : backupFolder.listFiles()) {
+        File[] backupFiles = playerBackupFolder.listFiles();
+        if (backupFiles == null) return;
+
+        for (File file : backupFiles) {
             if (file.isDirectory())
                 continue;
 
@@ -171,16 +188,28 @@ public class YAML {
             if (!StringUtils.isNumeric(fileName))
                 continue;
 
-            timeSaved.add(Long.parseLong(fileName));
+            long saveTimeStamp;
+            try {
+                saveTimeStamp = Long.parseLong(fileName);
+            } catch (NumberFormatException ex) {
+                continue;
+            }
+
+            // In the case the backup was created less than a second ago, ignore it to avoid data corruption
+            if (System.currentTimeMillis() - saveTimeStamp < 1000) {
+                continue;
+            }
+
+            timeSaved.add(saveTimeStamp);
         }
 
         for (int i = 0; i < deleteAmount; i++) {
             Long deleteTimestamp = Collections.min(timeSaved);
             timeSaved.remove(deleteTimestamp);
             try {
-                Files.delete(new File (backupFolder, deleteTimestamp + ".yml").toPath());
-            } catch (IOException e) {
-                e.printStackTrace();
+                Files.deleteIfExists(new File (playerBackupFolder, deleteTimestamp + ".yml").toPath());
+            } catch (IOException ex) {
+                ex.printStackTrace();
             }
         }
     }
@@ -351,7 +380,7 @@ public class YAML {
     }
 
     public static String getBackupFolderName() {
-        return backup;
+        return backupFolderName;
     }
 
     public static void convertOldBackupData() {
@@ -372,7 +401,7 @@ public class YAML {
 
         for (File backupFolders : backupLocations) {
             if (!backupFolders.exists()) {
-                InventoryRollback.getPluginLogger().log(Level.WARNING, () -> MessageData.getPluginName() + "Backup folder does not exist at " + backupFolders.getAbsolutePath());
+                InventoryRollback.getPluginLogger().log(Level.WARNING, () -> MessageData.getPluginPrefix() + "Backup folder does not exist at " + backupFolders.getAbsolutePath());
                 logTypeNumber++;
                 continue;
             }
@@ -387,7 +416,7 @@ public class YAML {
             }
 
             LogType log = logTypeFiles.get(logTypeNumber);
-            InventoryRollback.getPluginLogger().log(Level.INFO, () -> MessageData.getPluginName() + "Converting the backup location " + log.name());
+            InventoryRollback.getPluginLogger().log(Level.INFO, () -> MessageData.getPluginPrefix() + "Converting the backup location " + log.name());
 
             for (File backup : backupFiles) {
                 YamlConfiguration data = new YamlConfiguration();
@@ -395,7 +424,7 @@ public class YAML {
                 try {
                     data.load(backup);
                 } catch (InvalidConfigurationException | IOException e) {
-                    InventoryRollback.getPluginLogger().log(Level.WARNING, () -> MessageData.getPluginName() + "Error converting backup file at " + backup.getAbsolutePath() + " - Invalid YAML format possibly from corruption.");
+                    InventoryRollback.getPluginLogger().log(Level.WARNING, () -> MessageData.getPluginPrefix() + "Error converting backup file at " + backup.getAbsolutePath() + " - Invalid YAML format possibly from corruption.");
                     continue;
                 }
 
@@ -434,7 +463,7 @@ public class YAML {
 
                         yaml.saveData();
                     } catch (Exception e) {
-                        InventoryRollback.getPluginLogger().log(Level.WARNING, () -> MessageData.getPluginName() + "Error converting backup file at " + backup.getAbsolutePath() + " on timestamp " + time);
+                        InventoryRollback.getPluginLogger().log(Level.WARNING, () -> MessageData.getPluginPrefix() + "Error converting backup file at " + backup.getAbsolutePath() + " on timestamp " + time);
                     }
                 }
             }
@@ -443,7 +472,7 @@ public class YAML {
 
         }
 
-        InventoryRollback.getPluginLogger().log(Level.INFO, () -> MessageData.getPluginName() + "Conversion completed!");
+        InventoryRollback.getPluginLogger().log(Level.INFO, () -> MessageData.getPluginPrefix() + "Conversion completed!");
     }
 
 }
