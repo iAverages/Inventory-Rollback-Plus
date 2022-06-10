@@ -9,9 +9,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.logging.Level;
 
 import com.danielraybone.inventoryrollback.Numbers;
+import com.nuclyon.technicallycoded.inventoryrollback.InventoryRollbackPlus;
 import org.bukkit.inventory.ItemStack;
 
 import me.danjono.inventoryrollback.InventoryRollback;
@@ -475,7 +475,7 @@ public class MySQL {
 
         for (File backupType : backupLocations) {
             LogType logType = logTypeFiles.get(logTypeNumber);
-            InventoryRollback.getPluginLogger().log(Level.INFO, () -> MessageData.getPluginPrefix() + "Converting the backup location " + logType.name());
+            InventoryRollbackPlus.getInstance().getConsoleSender().sendMessage(MessageData.getPluginPrefix() + "Converting the backup location " + logType.name());
 
             if (backupType == null) continue;
 
@@ -526,7 +526,7 @@ public class MySQL {
 
         }
 
-        InventoryRollback.getPluginLogger().log(Level.INFO, () -> MessageData.getPluginPrefix() + "Conversion completed!");
+        InventoryRollback.getPluginLogger().info(MessageData.getPluginPrefix() + "Conversion completed!");
 
     }
 
