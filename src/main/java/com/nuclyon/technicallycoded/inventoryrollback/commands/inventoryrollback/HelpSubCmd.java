@@ -15,7 +15,7 @@ public class HelpSubCmd extends IRPCommand {
 
     @Override
     public void onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (sender.hasPermission("inventoryrollbackplus.help") || sender.hasPermission("inventoryrollback.help")) {
+        if (sender.hasPermission("inventoryrollbackplus.help")) {
             this.sendHelp(sender);
         } else {
             sender.sendMessage(MessageData.getPluginPrefix() + MessageData.getNoPermission());
@@ -27,13 +27,13 @@ public class HelpSubCmd extends IRPCommand {
         sender.sendMessage(
                 MessageData.getPluginPrefix() + ChatColor.GRAY + "InventoryRollbackPlus - by TechnicallyCoded\n" +
                         ChatColor.WHITE + "  Available Commands:\n" +
-                        ChatColor.WHITE + "    /ir restore [player]" + ChatColor.GRAY + " - Open rollback GUI for optional [player]\n" +
-                        ChatColor.WHITE + "    /ir forcebackup <all/player> [player]" + ChatColor.GRAY + " - Create a forced save of a player's inventory\n" +
-                        ChatColor.WHITE + "    /ir enable" + ChatColor.GRAY + " - Enable the plugin\n" +
-                        ChatColor.WHITE + "    /ir disable" + ChatColor.GRAY + " - Disable the plugin\n" +
-                        ChatColor.WHITE + "    /ir reload" + ChatColor.GRAY + " - Reload the plugin\n" +
-                        ChatColor.WHITE + "    /ir help" + ChatColor.GRAY + " - Get this message\n" +
-                        ChatColor.WHITE + "    /ir version" + ChatColor.GRAY + " - Get plugin info & version\n");
+                        ChatColor.WHITE + "    /irp restore [player]" + ChatColor.GRAY + " - Open rollback GUI for optional [player]\n" +
+                        ChatColor.WHITE + "    /irp forcebackup <all/player> [player]" + ChatColor.GRAY + " - Create a forced save of a player's inventory\n" +
+                        ChatColor.WHITE + "    /irp enable" + ChatColor.GRAY + " - Enable the plugin\n" +
+                        ChatColor.WHITE + "    /irp disable" + ChatColor.GRAY + " - Disable the plugin\n" +
+                        ChatColor.WHITE + "    /irp reload" + ChatColor.GRAY + " - Reload the plugin\n" +
+                        ChatColor.WHITE + "    /irp help" + ChatColor.GRAY + " - Get this message\n" +
+                        ChatColor.WHITE + "    /irp version" + ChatColor.GRAY + " - Get plugin info & version\n");
     }
 
 }
